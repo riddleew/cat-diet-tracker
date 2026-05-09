@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Build output
+client/dist/
+
+# Legacy SQLite files (project migrated to Postgres)
+*.db
+*.db-shm
+*.db-wal
+server/uploads/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
