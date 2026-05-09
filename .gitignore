@@ -19,3 +19,7 @@ server/uploads/
 
 # Vercel
 .vercel/
+
+# Local assistant memory and env copies
+.claude/
+original.env
