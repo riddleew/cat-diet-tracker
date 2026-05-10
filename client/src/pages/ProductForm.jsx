@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getProduct, createProduct, updateProduct, uploadProductImage } from '../api';
+import { getProduct, createProduct, updateProduct, deleteProduct, uploadProductImage } from '../api';
 import { fallbackImg } from '../components/fallbackImg';
 
 const TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
@@ -13,12 +13,13 @@ export default function ProductForm() {
 
   const [form, setForm] = useState({
     brand: '', product: '', type: 'other',
-    image_url: '', product_url: '', barcode: '',
+    image_url: '', product_url: '',
   });
   const [pendingFile, setPendingFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,7 +30,6 @@ export default function ProductForm() {
         type: p.type || 'other',
         image_url: p.image_url || '',
         product_url: p.product_url || '',
-        barcode: p.barcode || '',
       })).catch(() => navigate('/products'));
     }
   }, [id]);
@@ -54,6 +54,18 @@ export default function ProductForm() {
     setPreviewUrl(null);
     update('image_url', '');
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  async function remove() {
+    if (!confirm(`Delete "${form.product || form.brand}"?`)) return;
+    setDeleting(true);
+    try {
+      await deleteProduct(id);
+      navigate('/products');
+    } catch (err) {
+      setError(err.message);
+      setDeleting(false);
+    }
   }
 
   async function submit(e) {
@@ -180,16 +192,6 @@ export default function ProductForm() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Barcode <span className="text-gray-400 text-xs">(optional)</span></label>
-          <input
-            value={form.barcode}
-            onChange={e => update('barcode', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
-            placeholder="UPC/EAN"
-          />
-        </div>
-
         <button
           type="submit"
           disabled={saving}
@@ -197,6 +199,17 @@ export default function ProductForm() {
         >
           {uploading ? 'Uploading photo…' : saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Product'}
         </button>
+
+        {isEdit && (
+          <button
+            type="button"
+            onClick={remove}
+            disabled={deleting}
+            className="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-medium hover:bg-red-50 transition-colors disabled:opacity-50 text-base"
+          >
+            {deleting ? 'Deleting…' : 'Delete Product'}
+          </button>
+        )}
       </form>
     </div>
   );

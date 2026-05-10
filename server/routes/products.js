@@ -61,35 +61,45 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { brand, product, type, image_url, product_url, barcode } = req.body;
+    const { brand, product, type, image_url, product_url } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
-      INSERT INTO food_products (brand, product, type, image_url, product_url, barcode, source)
+      INSERT INTO food_products (brand, product, type, image_url, product_url, source)
       VALUES (
         ${brand || ''}, ${product || ''}, ${normalizeType(type)},
-        ${image_url || null}, ${product_url || null}, ${barcode || null}, 'user'
+        ${image_url || null}, ${product_url || null}, 'user'
       )
       RETURNING *
     `;
     res.status(201).json(row);
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'A product with this brand and name already exists' });
+    }
+    next(err);
+  }
 });
 
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { brand, product, type, image_url, product_url, barcode } = req.body;
+    const { brand, product, type, image_url, product_url } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
       UPDATE food_products SET
         brand=${brand || ''}, product=${product || ''}, type=${normalizeType(type)},
-        image_url=${image_url || null}, product_url=${product_url || null}, barcode=${barcode || null}
+        image_url=${image_url || null}, product_url=${product_url || null}
       WHERE id=${id}
       RETURNING *
     `;
     if (!row) return res.status(404).json({ error: 'Product not found' });
     res.json(row);
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'A product with this brand and name already exists' });
+    }
+    next(err);
+  }
 });
 
 router.delete('/:id', async (req, res, next) => {

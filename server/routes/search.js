@@ -10,7 +10,7 @@ router.get('/foods', async (req, res, next) => {
     const qLow = q.toLowerCase();
 
     const products = await sql`
-      SELECT brand, product, type, image_url, product_url, barcode, source
+      SELECT brand, product, type, image_url, product_url, source
       FROM food_products
       WHERE brand ILIKE ${pattern} OR product ILIKE ${pattern}
     `;

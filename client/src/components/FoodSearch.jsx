@@ -76,7 +76,7 @@ export default function FoodSearch({ catId, onAdded }) {
   const showSaveUI = selected || (query.trim() && !suggestions.length);
 
   return (
-    <div className="relative">
+    <div>
       <div className="relative">
         <input
           type="text"
@@ -97,32 +97,30 @@ export default function FoodSearch({ catId, onAdded }) {
       </div>
 
       {suggestions.length > 0 && (
-        <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-96 overflow-y-auto">
+        <div className="mt-3 grid grid-cols-3 gap-3">
           {suggestions.map((s, i) => (
-            <li key={`${s.brand}|${s.product}|${i}`}>
-              <button
-                onMouseDown={() => pick(s)}
-                className="w-full flex items-center gap-3 text-left px-3 py-2.5 hover:bg-indigo-50 active:bg-indigo-100 min-h-[56px] border-b border-gray-50 last:border-0"
-              >
-                <img
-                  src={s.image_url || fallbackImg(s.brand)}
-                  alt=""
-                  className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
-                  onError={e => { e.target.src = fallbackImg(s.brand); }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {s.product || s.brand}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {s.product && s.brand && <span className="text-xs text-gray-400 truncate">{s.brand}</span>}
-                    <TypeBadge type={s.type || 'other'} small />
-                  </div>
-                </div>
-              </button>
-            </li>
+            <button
+              key={`${s.brand}|${s.product}|${i}`}
+              onMouseDown={() => pick(s)}
+              className="flex flex-col text-left rounded-xl overflow-hidden border border-gray-200 hover:border-indigo-400 hover:shadow-md transition-all bg-white"
+            >
+              <img
+                src={s.image_url || fallbackImg(s.brand)}
+                alt=""
+                className="w-full aspect-square object-cover bg-gray-100"
+                onError={e => { e.target.src = fallbackImg(s.brand); }}
+              />
+              <div className="p-2 w-full">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {s.product || s.brand}
+                </p>
+                {s.product && s.brand && (
+                  <p className="text-xs text-gray-400 truncate">{s.brand}</p>
+                )}
+              </div>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
 
       {showSaveUI && (

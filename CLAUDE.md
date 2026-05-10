@@ -11,8 +11,8 @@ npm run dev:server    # Express only
 npm run dev:client    # Vite only
 
 # Database
-npm run init-db       # Idempotent table creation (safe to re-run)
-npm run seed          # Import ~2,400 cat foods from Open Pet Food Facts (skips if >100 products exist; pass --force to override)
+npm run init-db       # Idempotent schema creation + migrations (safe to re-run)
+npm run seed          # Wipe-and-reseed: ~200 curated popular cat foods, then strict-filtered Open Pet Food Facts supplement. Refuses to wipe a non-empty table without --force.
 
 # Client (from client/)
 npm run lint          # ESLint
@@ -40,9 +40,11 @@ Raw SQL via `@neondatabase/serverless` tagged template literals — no ORM:
 const rows = await sql`SELECT * FROM cats WHERE id = ${id}`;
 ```
 
-Schema is in `server/db/schema.sql`; run `npm run init-db` to apply it (uses `CREATE TABLE IF NOT EXISTS`).
+Schema is in `server/db/schema.sql`; run `npm run init-db` to apply it (`CREATE TABLE IF NOT EXISTS` plus idempotent `ALTER` migrations).
 
-Four tables: `cats`, `food_products` (global catalog), `food_preferences` (per-cat ratings with `status`: `liked` / `disliked` / `neutral`), `settings` (key-value, currently unused).
+Four tables: `cats`, `food_products` (global catalog, uniquely identified by `LOWER(brand), LOWER(product)`), `food_preferences` (per-cat ratings with `status`: `liked` / `disliked` / `neutral`), `settings` (key-value, currently unused).
+
+Curated seed data lives in `server/scripts/seed-data/cat-foods.json`. The seed script inserts those rows first (`source = 'curated'`) and then supplements with strict-filtered Open Pet Food Facts entries (`source = 'opff'`); user-added rows from the UI use `source = 'user'`.
 
 ## API
 

@@ -13,13 +13,17 @@ CREATE TABLE IF NOT EXISTS food_products (
   type        TEXT NOT NULL DEFAULT 'other',
   image_url   TEXT,
   product_url TEXT,
-  barcode     TEXT UNIQUE,
-  source      TEXT DEFAULT 'opff'
+  source      TEXT DEFAULT 'curated'
 );
 
 CREATE INDEX IF NOT EXISTS idx_food_products_brand ON food_products(brand);
 CREATE INDEX IF NOT EXISTS idx_food_products_product ON food_products(product);
 CREATE INDEX IF NOT EXISTS idx_food_products_type ON food_products(type);
+
+-- Migration: drop legacy barcode column and switch dedup to brand+product.
+ALTER TABLE food_products DROP COLUMN IF EXISTS barcode;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_food_products_brand_product
+  ON food_products (LOWER(brand), LOWER(product));
 
 CREATE TABLE IF NOT EXISTS food_preferences (
   id          SERIAL PRIMARY KEY,
