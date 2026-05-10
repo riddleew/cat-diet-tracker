@@ -26,7 +26,7 @@ router.post('/', async (req, res, next) => {
     const catId = parseInt(req.params.catId, 10);
     const { brand, product, type, image_url, product_url, status, notes } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
-    if (!['liked', 'disliked', 'neutral'].includes(status)) {
+    if (!['loved', 'liked', 'disliked', 'awaiting'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
     const [row] = await sql`
@@ -48,7 +48,7 @@ router.put('/:id', async (req, res, next) => {
     const id = parseInt(req.params.id, 10);
     const { brand, product, type, image_url, product_url, status, notes } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
-    if (!['liked', 'disliked', 'neutral'].includes(status)) {
+    if (!['loved', 'liked', 'disliked', 'awaiting'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
     const [row] = await sql`

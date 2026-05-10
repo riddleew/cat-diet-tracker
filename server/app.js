@@ -16,6 +16,7 @@ app.use('/api/cats/:catId/foods', require('./routes/foodPreferences'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/stats', require('./routes/stats'));
 
 // In production (or when Vercel is serving static), serve the built React app.
 if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {

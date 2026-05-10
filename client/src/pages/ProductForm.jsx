@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getProduct, createProduct, updateProduct, deleteProduct, uploadProductImage } from '../api';
-import { fallbackImg } from '../components/fallbackImg';
+import { getProduct, createProduct, updateProduct, deleteProduct } from '../api';
+import ImageUploader from '../components/ImageUploader';
 
 const TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
 
@@ -9,16 +9,13 @@ export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
-  const fileInputRef = useRef(null);
+  const uploaderRef = useRef(null);
 
   const [form, setForm] = useState({
     brand: '', product: '', type: 'other',
     image_url: '', product_url: '',
   });
-  const [pendingFile, setPendingFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,27 +31,7 @@ export default function ProductForm() {
     }
   }, [id]);
 
-  useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
-  }, [previewUrl]);
-
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
-
-  function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPendingFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  }
-
-  function clearImage() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPendingFile(null);
-    setPreviewUrl(null);
-    update('image_url', '');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
 
   async function remove() {
     if (!confirm(`Delete "${form.product || form.brand}"?`)) return;
@@ -79,18 +56,10 @@ export default function ProductForm() {
 
     setSaving(true);
     try {
-      let payload = { ...form };
-
-      if (pendingFile) {
-        setUploading(true);
-        try {
-          const { image_url } = await uploadProductImage(pendingFile);
-          payload.image_url = image_url;
-        } finally {
-          setUploading(false);
-        }
-      }
-
+      const image_url = uploaderRef.current
+        ? await uploaderRef.current.commitUpload()
+        : form.image_url;
+      const payload = { ...form, image_url };
       if (isEdit) await updateProduct(id, payload);
       else await createProduct(payload);
       navigate('/products');
@@ -101,93 +70,70 @@ export default function ProductForm() {
     }
   }
 
-  const displayImage = previewUrl || form.image_url;
-
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 pb-24">
+    <div className="max-w-xl mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/products')} className="text-indigo-500 text-sm font-medium">‹ Products</button>
-        <h1 className="text-xl font-bold text-gray-900">{isEdit ? 'Edit Product' : 'New Product'}</h1>
+        <button
+          onClick={() => navigate('/products')}
+          className="text-tabby text-sm font-bold hover:underline"
+        >
+          ‹ Foods
+        </button>
+        <h1 className="text-2xl font-extrabold text-espresso">{isEdit ? 'Edit Food' : 'New Food'}</h1>
       </div>
 
-      <form onSubmit={submit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+      <form onSubmit={submit} className="bg-card rounded-3xl shadow-sm border border-cocoa/20 p-5 space-y-5">
+        {error && <p className="text-terracotta text-sm font-semibold">{error}</p>}
 
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative">
-            <img
-              src={displayImage || fallbackImg(form.brand)}
-              alt=""
-              className="w-32 h-32 rounded-2xl object-cover bg-gray-100 border border-gray-200"
-              onError={e => { e.target.src = fallbackImg(form.brand); }}
-            />
-            {displayImage && (
-              <button
-                type="button"
-                onClick={clearImage}
-                aria-label="Remove image"
-                className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-red-500 flex items-center justify-center text-sm"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleFile}
-            className="hidden"
-            id="product-image-input"
-          />
-          <label
-            htmlFor="product-image-input"
-            className="cursor-pointer bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition-colors min-h-[44px] flex items-center"
-          >
-            📷 {displayImage ? 'Change Photo' : 'Take or Choose Photo'}
-          </label>
-        </div>
+        <ImageUploader
+          ref={uploaderRef}
+          value={form.image_url}
+          onUrl={(url) => update('image_url', url)}
+          fallbackKey={form.brand}
+          shape="square"
+          label="Photo"
+        />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">Brand</label>
           <input
             value={form.brand}
             onChange={e => update('brand', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
             placeholder="e.g. Fancy Feast"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">Product</label>
           <input
             value={form.product}
             onChange={e => update('product', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
             placeholder="e.g. Chicken Feast in Gravy"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">Type</label>
           <select
             value={form.type}
             onChange={e => update('type', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white capitalize"
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft capitalize"
           >
             {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product URL <span className="text-gray-400 text-xs">(optional)</span></label>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">
+            Product URL <span className="text-cocoa text-xs font-semibold">(optional)</span>
+          </label>
           <input
             type="url"
             value={form.product_url}
             onChange={e => update('product_url', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
             placeholder="https://…"
           />
         </div>
@@ -195,9 +141,9 @@ export default function ProductForm() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 text-base"
+          className="w-full py-3.5 bg-tabby text-white rounded-2xl font-extrabold hover:bg-tabby/90 transition-colors disabled:opacity-50 text-base shadow-sm"
         >
-          {uploading ? 'Uploading photo…' : saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Product'}
+          {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Food'}
         </button>
 
         {isEdit && (
@@ -205,9 +151,9 @@ export default function ProductForm() {
             type="button"
             onClick={remove}
             disabled={deleting}
-            className="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-medium hover:bg-red-50 transition-colors disabled:opacity-50 text-base"
+            className="w-full py-3 bg-card text-terracotta border border-terracotta/40 rounded-2xl font-bold hover:bg-terracotta-soft/30 transition-colors disabled:opacity-50 text-base"
           >
-            {deleting ? 'Deleting…' : 'Delete Product'}
+            {deleting ? 'Deleting…' : 'Delete Food'}
           </button>
         )}
       </form>

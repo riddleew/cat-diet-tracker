@@ -3,8 +3,12 @@ CREATE TABLE IF NOT EXISTS cats (
   name       TEXT NOT NULL,
   breed      TEXT,
   notes      TEXT,
+  image_url  TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migration: add image_url to existing cats tables.
+ALTER TABLE cats ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE TABLE IF NOT EXISTS food_products (
   id          SERIAL PRIMARY KEY,
@@ -33,12 +37,18 @@ CREATE TABLE IF NOT EXISTS food_preferences (
   type        TEXT NOT NULL DEFAULT 'other',
   image_url   TEXT,
   product_url TEXT,
-  status      TEXT NOT NULL CHECK (status IN ('liked', 'disliked', 'neutral')),
+  status      TEXT NOT NULL CHECK (status IN ('loved', 'liked', 'disliked', 'awaiting')),
   notes       TEXT,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_food_preferences_cat ON food_preferences(cat_id);
+
+-- Migration: keep status CHECK aligned with current values.
+-- The data rename (liked → loved, neutral → liked) happens in init-db.js BEFORE this runs,
+-- so by the time we re-add the constraint, no rows violate it.
+ALTER TABLE food_preferences DROP CONSTRAINT IF EXISTS food_preferences_status_check;
+ALTER TABLE food_preferences ADD CONSTRAINT food_preferences_status_check CHECK (status IN ('loved', 'liked', 'disliked', 'awaiting'));
 
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,

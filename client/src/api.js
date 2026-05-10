@@ -24,6 +24,8 @@ export const deleteFood = (catId, id) => request(`/cats/${catId}/foods/${id}`, {
 
 export const searchFoods = (q) => request(`/search/foods?q=${encodeURIComponent(q)}`);
 
+export const getStats = () => request('/stats');
+
 export const getProducts = (params = {}) => {
   const qs = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v !== '' && v != null)

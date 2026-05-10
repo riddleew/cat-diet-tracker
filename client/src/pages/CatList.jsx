@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getCats, deleteCat } from '../api';
+import { motion } from 'framer-motion';
+import { getCats } from '../api';
+import CatMascot from '../components/CatMascot';
 
 export default function CatList() {
   const [cats, setCats] = useState([]);
@@ -10,58 +12,89 @@ export default function CatList() {
     getCats().then(setCats).finally(() => setLoading(false));
   }, []);
 
-  async function remove(cat) {
-    if (!confirm(`Delete ${cat.name}? This removes all their food preferences.`)) return;
-    await deleteCat(cat.id);
-    setCats(prev => prev.filter(c => c.id !== cat.id));
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <div className="w-8 h-8 border-4 border-tabby border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  if (loading) return <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" /></div>;
-
   return (
-    <div className="max-w-xl mx-auto px-4 py-6">
+    <div className="max-w-xl mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center justify-between mb-6 gap-2">
-        <h1 className="text-2xl font-bold text-gray-900 flex-1 min-w-0 truncate">🐱 Cat Food Tracker</h1>
-        <Link to="/products" className="text-indigo-600 px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-50 transition-colors shrink-0">
-          Products
-        </Link>
-        <Link to="/cats/new" className="bg-indigo-600 text-white px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shrink-0">
-          + Cat
-        </Link>
+        <h1 className="text-3xl font-extrabold text-espresso flex items-center gap-2">
+          <span>🐾</span>
+          <span>Your Felines</span>
+        </h1>
+        {cats.length > 0 && (
+          <Link
+            to="/cats/new"
+            className="bg-tabby text-white px-4 py-2.5 rounded-2xl text-sm font-bold hover:bg-tabby/90 transition-colors shrink-0 shadow-sm"
+          >
+            + Add a feline
+          </Link>
+        )}
       </div>
 
       {cats.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-gray-400 mb-4">No cats yet!</p>
-          <Link to="/cats/new" className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors">
-            Add your first cat
+        <div className="flex flex-col items-center text-center pt-8 pb-6">
+          <CatMascot size={200} />
+          <p className="text-lg font-bold text-espresso mt-2">No cats yet —</p>
+          <p className="text-cocoa text-sm mb-6">let's add your first feline!</p>
+          <Link
+            to="/cats/new"
+            className="bg-tabby text-white px-6 py-3 rounded-2xl font-bold hover:bg-tabby/90 transition-colors shadow-sm"
+          >
+            + Add a feline
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {cats.map(cat => (
-            <li key={cat.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <Link to={`/cats/${cat.id}`} className="flex items-center px-4 py-4 gap-3 hover:bg-gray-50 transition-colors">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-base truncate">{cat.name}</p>
-                  {cat.breed && <p className="text-sm text-gray-400 truncate">{cat.breed}</p>}
+        <ul className="grid grid-cols-1 gap-4">
+          {cats.map((cat, i) => (
+            <motion.li
+              key={cat.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.04, ease: 'easeOut' }}
+            >
+              <Link
+                to={`/cats/${cat.id}`}
+                className="block relative rounded-3xl overflow-hidden bg-card shadow-sm border border-cocoa/20 hover:shadow-md transition-shadow"
+              >
+                <div className="aspect-[4/3] bg-cocoa-soft relative">
+                  {cat.image_url ? (
+                    <img
+                      src={cat.image_url}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <CatMascot size={140} />
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-espresso/85 via-espresso/40 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-white text-2xl font-extrabold truncate drop-shadow">{cat.name}</p>
+                      {cat.breed && <p className="text-cream-soft/85 text-sm font-semibold truncate">{cat.breed}</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {cat.counts.awaiting > 0 && (
+                        <span className="bg-saffron text-espresso px-2.5 py-1 rounded-full text-xs font-extrabold shadow">⏳ {cat.counts.awaiting}</span>
+                      )}
+                      {cat.counts.loved > 0 && (
+                        <span className="bg-sage text-white px-2.5 py-1 rounded-full text-xs font-extrabold shadow">😻 {cat.counts.loved}</span>
+                      )}
+                      {cat.counts.disliked > 0 && (
+                        <span className="bg-terracotta text-white px-2.5 py-1 rounded-full text-xs font-extrabold shadow">😿 {cat.counts.disliked}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3 text-sm shrink-0">
-                  {cat.counts.liked > 0 && <span className="text-green-600 font-medium">👍 {cat.counts.liked}</span>}
-                  {cat.counts.disliked > 0 && <span className="text-red-500 font-medium">👎 {cat.counts.disliked}</span>}
-                  {cat.counts.liked === 0 && cat.counts.disliked === 0 && <span className="text-gray-300 text-xs">no foods yet</span>}
-                </div>
-                <span className="text-gray-300 text-lg">›</span>
               </Link>
-              <div className="border-t border-gray-50 flex">
-                <Link to={`/cats/${cat.id}/edit`} className="flex-1 py-2 text-center text-sm text-indigo-500 hover:bg-indigo-50 transition-colors">
-                  Edit
-                </Link>
-                <button onClick={() => remove(cat)} className="flex-1 py-2 text-sm text-red-400 hover:bg-red-50 transition-colors border-l border-gray-50">
-                  Delete
-                </button>
-              </div>
-            </li>
+            </motion.li>
           ))}
         </ul>
       )}

@@ -1,10 +1,10 @@
 const STYLES = {
-  wet: 'bg-blue-100 text-blue-700 border-blue-200',
-  dry: 'bg-amber-100 text-amber-700 border-amber-200',
-  raw: 'bg-rose-100 text-rose-700 border-rose-200',
-  treat: 'bg-purple-100 text-purple-700 border-purple-200',
-  milk: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-  other: 'bg-gray-100 text-gray-600 border-gray-200',
+  wet: 'bg-saffron-soft/50 text-espresso border-saffron/40',
+  dry: 'bg-tabby-soft/40 text-tabby border-tabby/40',
+  raw: 'bg-terracotta-soft/50 text-terracotta border-terracotta/40',
+  treat: 'bg-sage-soft/50 text-sage border-sage/40',
+  milk: 'bg-cream border-cocoa/40 text-espresso-soft',
+  other: 'bg-cocoa-soft/40 text-espresso-soft border-cocoa/40',
 };
 
 const ICONS = {
@@ -24,7 +24,7 @@ export default function TypeBadge({ type, small, onClick }) {
   return (
     <Component
       onClick={onClick}
-      className={`inline-flex items-center gap-1 ${sizeCls} rounded-full border font-medium capitalize ${cls} ${onClick ? 'cursor-pointer active:opacity-70' : ''}`}
+      className={`inline-flex items-center gap-1 ${sizeCls} rounded-full border font-bold capitalize ${cls} ${onClick ? 'cursor-pointer active:opacity-70' : ''}`}
     >
       <span>{ICONS[t]}</span>
       <span>{t}</span>
