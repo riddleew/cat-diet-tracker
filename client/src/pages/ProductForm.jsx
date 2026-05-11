@@ -5,6 +5,48 @@ import ImageUploader from '../components/ImageUploader';
 
 const TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
 
+const TEXTURES = [
+  { value: 'pate', label: 'Pâté' },
+  { value: 'chunks_in_gravy', label: 'Chunks in Gravy' },
+  { value: 'minced', label: 'Minced' },
+  { value: 'shredded', label: 'Shredded' },
+  { value: 'mousse', label: 'Mousse' },
+  { value: 'sliced', label: 'Sliced' },
+  { value: 'flaked', label: 'Flaked' },
+  { value: 'ground', label: 'Ground' },
+  { value: 'grilled', label: 'Grilled' },
+];
+
+const LIFESTAGES = [
+  { value: 'kitten', label: 'Kitten' },
+  { value: 'adult', label: 'Adult' },
+  { value: 'senior', label: 'Senior' },
+  { value: 'all_lifestages', label: 'All Lifestages' },
+];
+
+const DIETS = [
+  { value: 'chicken_free', label: 'Chicken-Free' },
+  { value: 'gluten_free', label: 'Gluten-Free' },
+  { value: 'grain_free', label: 'Grain-Free' },
+  { value: 'high_fiber', label: 'High Fiber' },
+  { value: 'high_protein', label: 'High-Protein' },
+  { value: 'human_grade', label: 'Human-Grade' },
+  { value: 'indoor', label: 'Indoor' },
+  { value: 'limited_ingredient', label: 'Limited Ingredient' },
+  { value: 'low_fat', label: 'Low Fat' },
+  { value: 'low_glycemic', label: 'Low Glycemic' },
+  { value: 'natural', label: 'Natural' },
+  { value: 'no_corn_wheat_soy', label: 'No Corn / Wheat / Soy' },
+  { value: 'non_gmo', label: 'Non-GMO' },
+  { value: 'organic', label: 'Organic' },
+  { value: 'pea_free', label: 'Pea-Free' },
+  { value: 'plant_based', label: 'Plant Based' },
+  { value: 'soy_free', label: 'Soy-Free' },
+  { value: 'veterinary_diet', label: 'Veterinary Diet' },
+  { value: 'weight_control', label: 'Weight Control' },
+  { value: 'with_grain', label: 'With Grain' },
+];
+
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,6 +56,7 @@ export default function ProductForm() {
   const [form, setForm] = useState({
     brand: '', product: '', type: 'other',
     image_url: '', product_url: '',
+    food_texture: '', lifestage: '', special_diet: [],
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -27,11 +70,23 @@ export default function ProductForm() {
         type: p.type || 'other',
         image_url: p.image_url || '',
         product_url: p.product_url || '',
+        food_texture: p.food_texture || '',
+        lifestage: p.lifestage || '',
+        special_diet: Array.isArray(p.special_diet) ? p.special_diet : [],
       })).catch(() => navigate('/products'));
     }
   }, [id]);
 
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }
+
+  function toggleDiet(value) {
+    setForm(f => ({
+      ...f,
+      special_diet: f.special_diet.includes(value)
+        ? f.special_diet.filter(d => d !== value)
+        : [...f.special_diet, value],
+    }));
+  }
 
   async function remove() {
     if (!confirm(`Delete "${form.product || form.brand}"?`)) return;
@@ -123,6 +178,59 @@ export default function ProductForm() {
           >
             {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">
+            Food Texture <span className="text-cocoa text-xs font-semibold">(optional)</span>
+          </label>
+          <select
+            value={form.food_texture}
+            onChange={e => update('food_texture', e.target.value)}
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
+          >
+            <option value="">—</option>
+            {TEXTURES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">
+            Lifestage <span className="text-cocoa text-xs font-semibold">(optional)</span>
+          </label>
+          <select
+            value={form.lifestage}
+            onChange={e => update('lifestage', e.target.value)}
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
+          >
+            <option value="">—</option>
+            {LIFESTAGES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">
+            Special Diet <span className="text-cocoa text-xs font-semibold">(optional, multi-select)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {DIETS.map(d => {
+              const checked = form.special_diet.includes(d.value);
+              return (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => toggleDiet(d.value)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold text-left transition-colors border ${
+                    checked
+                      ? 'bg-tabby text-white border-tabby shadow-sm'
+                      : 'bg-cream-soft text-espresso-soft border-cocoa/40 hover:bg-card'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>

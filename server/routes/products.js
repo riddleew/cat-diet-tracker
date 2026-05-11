@@ -4,9 +4,36 @@ const router = express.Router();
 
 const VALID_TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
 
+const VALID_TEXTURES = [
+  'pate', 'chunks_in_gravy', 'minced', 'shredded', 'mousse',
+  'sliced', 'flaked', 'ground', 'grilled',
+];
+
+const VALID_LIFESTAGES = ['kitten', 'adult', 'senior', 'all_lifestages'];
+
+const VALID_DIETS = [
+  'chicken_free', 'gluten_free', 'grain_free', 'high_fiber', 'high_protein',
+  'human_grade', 'indoor', 'limited_ingredient', 'low_fat', 'low_glycemic',
+  'natural', 'no_corn_wheat_soy', 'non_gmo', 'organic', 'pea_free',
+  'plant_based', 'soy_free', 'veterinary_diet', 'weight_control', 'with_grain',
+];
+
 function normalizeType(t) {
   if (!t) return 'other';
   return VALID_TYPES.includes(t) ? t : 'other';
+}
+
+function normalizeTexture(t) {
+  return t && VALID_TEXTURES.includes(t) ? t : null;
+}
+
+function normalizeLifestage(t) {
+  return t && VALID_LIFESTAGES.includes(t) ? t : null;
+}
+
+function normalizeDiets(arr) {
+  if (!Array.isArray(arr)) return [];
+  return [...new Set(arr.filter(d => VALID_DIETS.includes(d)))];
 }
 
 router.get('/', async (req, res, next) => {
@@ -61,13 +88,14 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { brand, product, type, image_url, product_url } = req.body;
+    const { brand, product, type, image_url, product_url, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
-      INSERT INTO food_products (brand, product, type, image_url, product_url, source)
+      INSERT INTO food_products (brand, product, type, image_url, product_url, source, food_texture, lifestage, special_diet)
       VALUES (
         ${brand || ''}, ${product || ''}, ${normalizeType(type)},
-        ${image_url || null}, ${product_url || null}, 'user'
+        ${image_url || null}, ${product_url || null}, 'user',
+        ${normalizeTexture(food_texture)}, ${normalizeLifestage(lifestage)}, ${normalizeDiets(special_diet)}
       )
       RETURNING *
     `;
@@ -83,12 +111,15 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { brand, product, type, image_url, product_url } = req.body;
+    const { brand, product, type, image_url, product_url, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
       UPDATE food_products SET
         brand=${brand || ''}, product=${product || ''}, type=${normalizeType(type)},
-        image_url=${image_url || null}, product_url=${product_url || null}
+        image_url=${image_url || null}, product_url=${product_url || null},
+        food_texture=${normalizeTexture(food_texture)},
+        lifestage=${normalizeLifestage(lifestage)},
+        special_diet=${normalizeDiets(special_diet)}
       WHERE id=${id}
       RETURNING *
     `;

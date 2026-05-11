@@ -29,6 +29,11 @@ ALTER TABLE food_products DROP COLUMN IF EXISTS barcode;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_food_products_brand_product
   ON food_products (LOWER(brand), LOWER(product));
 
+-- Migration: add descriptor columns (texture, lifestage, special diet tags).
+ALTER TABLE food_products ADD COLUMN IF NOT EXISTS food_texture TEXT;
+ALTER TABLE food_products ADD COLUMN IF NOT EXISTS lifestage TEXT;
+ALTER TABLE food_products ADD COLUMN IF NOT EXISTS special_diet TEXT[] NOT NULL DEFAULT '{}';
+
 CREATE TABLE IF NOT EXISTS food_preferences (
   id          SERIAL PRIMARY KEY,
   cat_id      INTEGER NOT NULL REFERENCES cats(id) ON DELETE CASCADE,
