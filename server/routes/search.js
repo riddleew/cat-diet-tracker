@@ -14,7 +14,7 @@ router.get('/foods', async (req, res, next) => {
       .join(' AND ');
 
     const products = await sql.query(
-      `SELECT brand, product, type, image_url, product_url, source
+      `SELECT brand, product, type, image_url, product_urls, source
        FROM food_products
        WHERE ${where}`,
       params
@@ -27,8 +27,18 @@ router.get('/foods', async (req, res, next) => {
       params
     );
 
+    // Unify shape: every row has both product_urls (array) and product_url (first URL or null).
+    const productsNormalized = products.map(p => {
+      const urls = Array.isArray(p.product_urls) ? p.product_urls : [];
+      return { ...p, product_urls: urls, product_url: urls[0]?.url || null };
+    });
+    const prefsNormalized = fromPrefs.map(p => ({
+      ...p,
+      product_urls: p.product_url ? [{ url: p.product_url }] : [],
+    }));
+
     const seen = new Map();
-    for (const row of [...fromPrefs, ...products]) {
+    for (const row of [...prefsNormalized, ...productsNormalized]) {
       const key = `${(row.brand || '').toLowerCase()}|${(row.product || '').toLowerCase()}`;
       if (!seen.has(key)) seen.set(key, row);
     }

@@ -29,6 +29,24 @@ if (!process.env.DATABASE_URL) {
     console.log('✓ Status values migrated.');
   }
 
+  // Pre-schema data migration: copy food_products.product_url → product_urls JSONB array.
+  // Runs before schema.sql drops product_url. Idempotent — only fires while the legacy column exists.
+  const productUrlCol = await sql`
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'food_products' AND column_name = 'product_url'
+  `;
+  if (productUrlCol.length) {
+    console.log('Migrating food_products.product_url → product_urls JSONB …');
+    await sql`ALTER TABLE food_products ADD COLUMN IF NOT EXISTS product_urls JSONB NOT NULL DEFAULT '[]'::jsonb`;
+    await sql`
+      UPDATE food_products
+      SET product_urls = jsonb_build_array(jsonb_build_object('url', product_url))
+      WHERE product_url IS NOT NULL AND product_url <> ''
+        AND product_urls = '[]'::jsonb
+    `;
+    console.log('✓ product_url values copied into product_urls.');
+  }
+
   const schema = fs.readFileSync(path.join(__dirname, '..', 'db', 'schema.sql'), 'utf8');
 
   // Neon's tagged sql doesn't accept multiple statements; split on `;` (naive but fine for our schema)

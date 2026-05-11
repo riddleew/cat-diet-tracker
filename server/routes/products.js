@@ -36,6 +36,22 @@ function normalizeDiets(arr) {
   return [...new Set(arr.filter(d => VALID_DIETS.includes(d)))];
 }
 
+const MAX_PRODUCT_URLS = 20;
+
+function normalizeProductUrls(arr) {
+  if (!Array.isArray(arr)) return [];
+  const out = [];
+  for (const item of arr) {
+    if (!item || typeof item !== 'object') continue;
+    const url = typeof item.url === 'string' ? item.url.trim() : '';
+    if (!url) continue;
+    const label = typeof item.label === 'string' ? item.label.trim() : '';
+    out.push(label ? { url, label } : { url });
+    if (out.length >= MAX_PRODUCT_URLS) break;
+  }
+  return out;
+}
+
 router.get('/', async (req, res, next) => {
   try {
     const q = (req.query.q || '').trim();
@@ -88,13 +104,13 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { brand, product, type, image_url, product_url, food_texture, lifestage, special_diet } = req.body;
+    const { brand, product, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
-      INSERT INTO food_products (brand, product, type, image_url, product_url, source, food_texture, lifestage, special_diet)
+      INSERT INTO food_products (brand, product, type, image_url, product_urls, source, food_texture, lifestage, special_diet)
       VALUES (
         ${brand || ''}, ${product || ''}, ${normalizeType(type)},
-        ${image_url || null}, ${product_url || null}, 'user',
+        ${image_url || null}, ${JSON.stringify(normalizeProductUrls(product_urls))}::jsonb, 'user',
         ${normalizeTexture(food_texture)}, ${normalizeLifestage(lifestage)}, ${normalizeDiets(special_diet)}
       )
       RETURNING *
@@ -111,12 +127,13 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { brand, product, type, image_url, product_url, food_texture, lifestage, special_diet } = req.body;
+    const { brand, product, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
       UPDATE food_products SET
         brand=${brand || ''}, product=${product || ''}, type=${normalizeType(type)},
-        image_url=${image_url || null}, product_url=${product_url || null},
+        image_url=${image_url || null},
+        product_urls=${JSON.stringify(normalizeProductUrls(product_urls))}::jsonb,
         food_texture=${normalizeTexture(food_texture)},
         lifestage=${normalizeLifestage(lifestage)},
         special_diet=${normalizeDiets(special_diet)}

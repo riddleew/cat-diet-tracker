@@ -11,13 +11,13 @@ CREATE TABLE IF NOT EXISTS cats (
 ALTER TABLE cats ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE TABLE IF NOT EXISTS food_products (
-  id          SERIAL PRIMARY KEY,
-  brand       TEXT NOT NULL DEFAULT '',
-  product     TEXT NOT NULL DEFAULT '',
-  type        TEXT NOT NULL DEFAULT 'other',
-  image_url   TEXT,
-  product_url TEXT,
-  source      TEXT DEFAULT 'curated'
+  id           SERIAL PRIMARY KEY,
+  brand        TEXT NOT NULL DEFAULT '',
+  product      TEXT NOT NULL DEFAULT '',
+  type         TEXT NOT NULL DEFAULT 'other',
+  image_url    TEXT,
+  product_urls JSONB NOT NULL DEFAULT '[]'::jsonb,
+  source       TEXT DEFAULT 'curated'
 );
 
 CREATE INDEX IF NOT EXISTS idx_food_products_brand ON food_products(brand);
@@ -33,6 +33,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_food_products_brand_product
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS food_texture TEXT;
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS lifestage TEXT;
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS special_diet TEXT[] NOT NULL DEFAULT '{}';
+
+-- Migration: replace single product_url with product_urls JSONB array of {url, label}.
+-- The data copy from product_url → product_urls happens in init-db.js BEFORE this runs.
+ALTER TABLE food_products ADD COLUMN IF NOT EXISTS product_urls JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE food_products DROP COLUMN IF EXISTS product_url;
 
 CREATE TABLE IF NOT EXISTS food_preferences (
   id          SERIAL PRIMARY KEY,

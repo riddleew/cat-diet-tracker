@@ -75,12 +75,13 @@ async function insertBatch(rows, source) {
     const params = [];
     let p = 1;
     for (const r of slice) {
-      values.push(`($${p}, $${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5})`);
-      params.push(r.brand, r.product, r.type, r.image_url || null, r.product_url || null, source);
+      values.push(`($${p}, $${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}::jsonb, $${p + 5})`);
+      const productUrls = r.product_url ? [{ url: r.product_url }] : [];
+      params.push(r.brand, r.product, r.type, r.image_url || null, JSON.stringify(productUrls), source);
       p += 6;
     }
     const stmt = `
-      INSERT INTO food_products (brand, product, type, image_url, product_url, source)
+      INSERT INTO food_products (brand, product, type, image_url, product_urls, source)
       VALUES ${values.join(', ')}
       ON CONFLICT (LOWER(brand), LOWER(product)) DO NOTHING
     `;

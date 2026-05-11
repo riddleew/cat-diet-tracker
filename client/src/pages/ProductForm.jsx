@@ -55,8 +55,9 @@ export default function ProductForm() {
 
   const [form, setForm] = useState({
     brand: '', product: '', type: 'other',
-    image_url: '', product_url: '',
+    image_url: '',
     food_texture: '', lifestage: '', special_diet: [],
+    product_urls: [],
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -69,10 +70,12 @@ export default function ProductForm() {
         product: p.product || '',
         type: p.type || 'other',
         image_url: p.image_url || '',
-        product_url: p.product_url || '',
         food_texture: p.food_texture || '',
         lifestage: p.lifestage || '',
         special_diet: Array.isArray(p.special_diet) ? p.special_diet : [],
+        product_urls: Array.isArray(p.product_urls)
+          ? p.product_urls.map(u => ({ url: u.url || '', label: u.label || '' }))
+          : [],
       })).catch(() => navigate('/products'));
     }
   }, [id]);
@@ -86,6 +89,21 @@ export default function ProductForm() {
         ? f.special_diet.filter(d => d !== value)
         : [...f.special_diet, value],
     }));
+  }
+
+  function addProductUrl() {
+    setForm(f => ({ ...f, product_urls: [...f.product_urls, { url: '', label: '' }] }));
+  }
+
+  function updateProductUrl(i, k, v) {
+    setForm(f => ({
+      ...f,
+      product_urls: f.product_urls.map((u, idx) => idx === i ? { ...u, [k]: v } : u),
+    }));
+  }
+
+  function removeProductUrl(i) {
+    setForm(f => ({ ...f, product_urls: f.product_urls.filter((_, idx) => idx !== i) }));
   }
 
   async function remove() {
@@ -114,7 +132,11 @@ export default function ProductForm() {
       const image_url = uploaderRef.current
         ? await uploaderRef.current.commitUpload()
         : form.image_url;
-      const payload = { ...form, image_url };
+      const product_urls = form.product_urls
+        .map(u => ({ url: (u.url || '').trim(), label: (u.label || '').trim() }))
+        .filter(u => u.url)
+        .map(u => u.label ? u : { url: u.url });
+      const payload = { ...form, image_url, product_urls };
       if (isEdit) await updateProduct(id, payload);
       else await createProduct(payload);
       navigate('/products');
@@ -235,15 +257,45 @@ export default function ProductForm() {
 
         <div>
           <label className="block text-sm font-bold text-espresso-soft mb-1.5">
-            Product URL <span className="text-cocoa text-xs font-semibold">(optional)</span>
+            Product Links <span className="text-cocoa text-xs font-semibold">(optional — add multiple to compare deals)</span>
           </label>
-          <input
-            type="url"
-            value={form.product_url}
-            onChange={e => update('product_url', e.target.value)}
-            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
-            placeholder="https://…"
-          />
+          <div className="space-y-2">
+            {form.product_urls.map((u, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <div className="flex-1 space-y-1.5">
+                  <input
+                    type="url"
+                    value={u.url}
+                    onChange={e => updateProductUrl(i, 'url', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-sm bg-cream-soft"
+                    placeholder="https://…"
+                  />
+                  <input
+                    type="text"
+                    value={u.label}
+                    onChange={e => updateProductUrl(i, 'label', e.target.value)}
+                    className="w-full px-3 py-2 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-xs bg-cream-soft"
+                    placeholder="Label (e.g. Chewy autoship)"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeProductUrl(i)}
+                  aria-label="Remove link"
+                  className="text-cocoa hover:text-terracotta text-lg leading-none min-w-[40px] min-h-[40px] flex items-center justify-center shrink-0 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addProductUrl}
+              className="w-full py-2.5 bg-cream-soft text-espresso-soft border border-dashed border-cocoa/40 rounded-xl text-sm font-bold hover:bg-card hover:border-tabby hover:text-tabby transition-colors"
+            >
+              + Add link
+            </button>
+          </div>
         </div>
 
         <button
