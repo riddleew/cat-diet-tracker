@@ -75,7 +75,6 @@ const ImageUploader = forwardRef(function ImageUploader(
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleFile}
         className="hidden"
         id={inputId}
