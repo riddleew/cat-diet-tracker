@@ -5,8 +5,8 @@ const router = express.Router();
 const VALID_TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
 
 const VALID_TEXTURES = [
-  'pate', 'chunks_in_gravy', 'minced', 'shredded', 'mousse',
-  'sliced', 'flaked', 'ground', 'grilled',
+  'chunks_in_gravy', 'flaked', 'grilled', 'ground', 'minced',
+  'morsels', 'mousse', 'pate', 'shredded', 'sliced',
 ];
 
 const VALID_LIFESTAGES = ['kitten', 'adult', 'senior', 'all_lifestages'];

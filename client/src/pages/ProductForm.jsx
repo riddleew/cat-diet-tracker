@@ -6,15 +6,16 @@ import ImageUploader from '../components/ImageUploader';
 const TYPES = ['wet', 'dry', 'raw', 'treat', 'milk', 'other'];
 
 const TEXTURES = [
-  { value: 'pate', label: 'Pâté' },
   { value: 'chunks_in_gravy', label: 'Chunks in Gravy' },
-  { value: 'minced', label: 'Minced' },
-  { value: 'shredded', label: 'Shredded' },
-  { value: 'mousse', label: 'Mousse' },
-  { value: 'sliced', label: 'Sliced' },
   { value: 'flaked', label: 'Flaked' },
-  { value: 'ground', label: 'Ground' },
   { value: 'grilled', label: 'Grilled' },
+  { value: 'ground', label: 'Ground' },
+  { value: 'minced', label: 'Minced' },
+  { value: 'morsels', label: 'Morsels' },
+  { value: 'mousse', label: 'Mousse' },
+  { value: 'pate', label: 'Pâté' },
+  { value: 'shredded', label: 'Shredded' },
+  { value: 'sliced', label: 'Sliced' },
 ];
 
 const LIFESTAGES = [
