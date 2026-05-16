@@ -22,6 +22,10 @@ export const createFood = (catId, body) => request(`/cats/${catId}/foods`, { met
 export const updateFood = (catId, id, body) => request(`/cats/${catId}/foods/${id}`, { method: 'PUT', body: JSON.stringify(body) });
 export const deleteFood = (catId, id) => request(`/cats/${catId}/foods/${id}`, { method: 'DELETE' });
 
+export const logFoodEvent = (catId, id, body) => request(`/cats/${catId}/foods/${id}/events`, { method: 'POST', body: JSON.stringify(body) });
+export const getFoodEvents = (catId, id) => request(`/cats/${catId}/foods/${id}/events`);
+export const deleteFoodEvent = (catId, id, eventId) => request(`/cats/${catId}/foods/${id}/events/${eventId}`, { method: 'DELETE' });
+
 export const searchFoods = (q) => request(`/search/foods?q=${encodeURIComponent(q)}`);
 
 export const getStats = () => request('/stats');

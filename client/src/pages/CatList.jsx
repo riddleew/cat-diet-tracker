@@ -87,6 +87,9 @@ export default function CatList() {
                       {cat.counts.loved > 0 && (
                         <span className="bg-sage text-white px-2.5 py-1 rounded-full text-xs font-extrabold shadow">😻 {cat.counts.loved}</span>
                       )}
+                      {cat.counts.bored > 0 && (
+                        <span className="bg-dusk text-white px-2.5 py-1 rounded-full text-xs font-extrabold shadow">🥱 {cat.counts.bored}</span>
+                      )}
                       {cat.counts.disliked > 0 && (
                         <span className="bg-terracotta text-white px-2.5 py-1 rounded-full text-xs font-extrabold shadow">😿 {cat.counts.disliked}</span>
                       )}

@@ -9,6 +9,7 @@ function Tile({ icon, value, label, color = 'tabby' }) {
     tabby: 'bg-tabby/10 border-tabby/30 text-tabby',
     sage: 'bg-sage-soft/40 border-sage/40 text-sage',
     saffron: 'bg-saffron-soft/40 border-saffron/40 text-saffron',
+    dusk: 'bg-dusk-soft/40 border-dusk/40 text-dusk',
   }[color];
   return (
     <div className={`rounded-2xl border p-4 ${colorCls}`}>
@@ -66,9 +67,10 @@ export default function Stats() {
       {/* At a glance */}
       <section>
         <h2 className="text-xs font-extrabold uppercase tracking-wider text-cocoa mb-2.5">At a glance</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Tile icon="🐱" value={totals.total_cats} label="Cats" color="tabby" />
           <Tile icon="😻" value={totals.total_loved} label="Loved" color="sage" />
+          <Tile icon="🥱" value={totals.total_bored} label="Bored" color="dusk" />
           <Tile icon="⏳" value={totals.total_awaiting} label="Awaiting" color="saffron" />
         </div>
       </section>

@@ -1,5 +1,6 @@
 const express = require('express');
 const sql = require('../db/database');
+const { summarizeEvents } = require('../lib/streaks');
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
@@ -10,13 +11,14 @@ router.get('/', async (req, res, next) => {
         SUM(CASE WHEN status='loved' THEN 1 ELSE 0 END)::int AS loved,
         SUM(CASE WHEN status='liked' THEN 1 ELSE 0 END)::int AS liked,
         SUM(CASE WHEN status='disliked' THEN 1 ELSE 0 END)::int AS disliked,
+        SUM(CASE WHEN status='bored' THEN 1 ELSE 0 END)::int AS bored,
         SUM(CASE WHEN status='awaiting' THEN 1 ELSE 0 END)::int AS awaiting
       FROM food_preferences GROUP BY cat_id
     `;
     const countMap = Object.fromEntries(counts.map(c => [c.cat_id, c]));
     res.json(cats.map(cat => ({
       ...cat,
-      counts: countMap[cat.id] || { loved: 0, liked: 0, disliked: 0, awaiting: 0 },
+      counts: countMap[cat.id] || { loved: 0, liked: 0, disliked: 0, bored: 0, awaiting: 0 },
     })));
   } catch (err) { next(err); }
 });
@@ -31,7 +33,25 @@ router.get('/:id', async (req, res, next) => {
       WHERE cat_id = ${id}
       ORDER BY created_at DESC
     `;
-    res.json({ ...cat, foods });
+    // Attach derived loved-streak / boredom info. One query for all the cat's
+    // events, grouped in JS — card renders immediately, no per-food round trip.
+    const ids = foods.map(f => f.id);
+    const eventsByPref = {};
+    if (ids.length) {
+      const events = await sql`
+        SELECT id, preference_id, reaction, occurred_on FROM food_events
+        WHERE preference_id = ANY(${ids})
+        ORDER BY occurred_on, id
+      `;
+      for (const e of events) {
+        (eventsByPref[e.preference_id] = eventsByPref[e.preference_id] || []).push(e);
+      }
+    }
+    const withStreak = foods.map(f => ({
+      ...f,
+      streak: summarizeEvents(eventsByPref[f.id] || []),
+    }));
+    res.json({ ...cat, foods: withStreak });
   } catch (err) { next(err); }
 });
 

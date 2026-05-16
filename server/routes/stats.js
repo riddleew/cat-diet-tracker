@@ -10,6 +10,7 @@ router.get('/', async (req, res, next) => {
         (SELECT COUNT(*)::int FROM food_preferences) AS total_foods,
         (SELECT COUNT(*)::int FROM food_preferences WHERE status = 'awaiting') AS total_awaiting,
         (SELECT COUNT(*)::int FROM food_preferences WHERE status = 'loved') AS total_loved,
+        (SELECT COUNT(*)::int FROM food_preferences WHERE status = 'bored') AS total_bored,
         (SELECT COUNT(*)::int FROM food_preferences WHERE status = 'disliked') AS total_disliked
     `;
 
