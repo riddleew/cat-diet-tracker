@@ -55,7 +55,7 @@ export default function ProductForm() {
   const uploaderRef = useRef(null);
 
   const [form, setForm] = useState({
-    brand: '', product: '', type: 'other',
+    brand: '', series: '', product: '', type: 'other',
     image_url: '',
     food_texture: '', lifestage: '', special_diet: [],
     product_urls: [],
@@ -68,6 +68,7 @@ export default function ProductForm() {
     if (isEdit) {
       getProduct(id).then(p => setForm({
         brand: p.brand || '',
+        series: p.series || '',
         product: p.product || '',
         type: p.type || 'other',
         image_url: p.image_url || '',
@@ -179,6 +180,18 @@ export default function ProductForm() {
             onChange={e => update('brand', e.target.value)}
             className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
             placeholder="e.g. Fancy Feast"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-espresso-soft mb-1.5">
+            Series <span className="text-cocoa text-xs font-semibold">(optional)</span>
+          </label>
+          <input
+            value={form.series}
+            onChange={e => update('series', e.target.value)}
+            className="w-full px-4 py-3 border border-cocoa/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-tabby focus:border-transparent text-base bg-cream-soft"
+            placeholder="e.g. Complete Health"
           />
         </div>
 

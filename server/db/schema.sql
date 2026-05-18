@@ -34,6 +34,9 @@ ALTER TABLE food_products ADD COLUMN IF NOT EXISTS food_texture TEXT;
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS lifestage TEXT;
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS special_diet TEXT[] NOT NULL DEFAULT '{}';
 
+-- Migration: add series column (brand sub-line, e.g. Wellness → "Complete Health").
+ALTER TABLE food_products ADD COLUMN IF NOT EXISTS series TEXT;
+
 -- Migration: replace single product_url with product_urls JSONB array of {url, label}.
 -- The data copy from product_url → product_urls happens in init-db.js BEFORE this runs.
 ALTER TABLE food_products ADD COLUMN IF NOT EXISTS product_urls JSONB NOT NULL DEFAULT '[]'::jsonb;

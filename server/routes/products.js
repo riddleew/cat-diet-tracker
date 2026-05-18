@@ -36,6 +36,11 @@ function normalizeDiets(arr) {
   return [...new Set(arr.filter(d => VALID_DIETS.includes(d)))];
 }
 
+function normalizeSeries(s) {
+  if (typeof s !== 'string') return null;
+  return s.trim() || null;
+}
+
 const MAX_PRODUCT_URLS = 20;
 
 function normalizeProductUrls(arr) {
@@ -104,12 +109,12 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { brand, product, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
+    const { brand, product, series, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
-      INSERT INTO food_products (brand, product, type, image_url, product_urls, source, food_texture, lifestage, special_diet)
+      INSERT INTO food_products (brand, product, series, type, image_url, product_urls, source, food_texture, lifestage, special_diet)
       VALUES (
-        ${brand || ''}, ${product || ''}, ${normalizeType(type)},
+        ${brand || ''}, ${product || ''}, ${normalizeSeries(series)}, ${normalizeType(type)},
         ${image_url || null}, ${JSON.stringify(normalizeProductUrls(product_urls))}::jsonb, 'user',
         ${normalizeTexture(food_texture)}, ${normalizeLifestage(lifestage)}, ${normalizeDiets(special_diet)}
       )
@@ -127,11 +132,12 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { brand, product, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
+    const { brand, product, series, type, image_url, product_urls, food_texture, lifestage, special_diet } = req.body;
     if (!brand && !product) return res.status(400).json({ error: 'Brand or product is required' });
     const [row] = await sql`
       UPDATE food_products SET
-        brand=${brand || ''}, product=${product || ''}, type=${normalizeType(type)},
+        brand=${brand || ''}, product=${product || ''}, series=${normalizeSeries(series)},
+        type=${normalizeType(type)},
         image_url=${image_url || null},
         product_urls=${JSON.stringify(normalizeProductUrls(product_urls))}::jsonb,
         food_texture=${normalizeTexture(food_texture)},

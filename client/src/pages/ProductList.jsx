@@ -127,6 +127,9 @@ export default function ProductList() {
                   {p.brand && (
                     <p className="text-base font-extrabold text-tabby uppercase tracking-wide truncate">{p.brand}</p>
                   )}
+                  {p.series && (
+                    <p className="text-xs font-bold text-cocoa truncate">{p.series}</p>
+                  )}
                   {p.product && (
                     <p className={`leading-snug truncate ${p.brand ? 'text-sm text-espresso-soft mt-0.5' : 'text-base font-bold text-espresso'}`}>
                       {p.product}
