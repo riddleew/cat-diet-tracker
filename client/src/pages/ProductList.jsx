@@ -120,7 +120,7 @@ export default function ProductList() {
                 <img
                   src={p.image_url || fallbackImg(p.brand)}
                   alt=""
-                  className="w-14 h-14 rounded-xl object-cover bg-cocoa-soft shrink-0"
+                  className="w-24 h-24 rounded-xl object-cover bg-cocoa-soft shrink-0"
                   onError={e => { e.target.src = fallbackImg(p.brand); }}
                 />
                 <div className="flex-1 min-w-0">

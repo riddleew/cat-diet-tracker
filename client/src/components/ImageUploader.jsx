@@ -56,7 +56,7 @@ const ImageUploader = forwardRef(function ImageUploader(
         <img
           src={displayImage || fallbackImg(fallbackKey || '')}
           alt=""
-          className={`w-32 h-32 ${imgShape} object-cover bg-cocoa-soft border border-cocoa/40`}
+          className={`w-40 h-40 ${imgShape} object-cover bg-cocoa-soft border border-cocoa/40`}
           onError={e => { e.target.src = fallbackImg(fallbackKey || ''); }}
         />
         {displayImage && (

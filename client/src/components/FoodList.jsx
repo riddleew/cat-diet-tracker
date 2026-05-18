@@ -165,7 +165,7 @@ export default function FoodList({ catId, foods, setFoods }) {
                       <img
                         src={food.image_url || fallbackImg(food.brand)}
                         alt=""
-                        className="w-14 h-14 rounded-xl object-cover bg-cocoa-soft shrink-0"
+                        className="w-24 h-24 rounded-xl object-cover bg-cocoa-soft shrink-0"
                         onError={e => { e.target.src = fallbackImg(food.brand); }}
                       />
                       <div className="flex-1 min-w-0">

@@ -97,7 +97,7 @@ export default function FoodSearch({ catId, onAdded }) {
       </div>
 
       {suggestions.length > 0 && (
-        <div className="mt-3 grid grid-cols-3 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           {suggestions.map((s, i) => (
             <button
               key={`${s.brand}|${s.product}|${i}`}
@@ -130,7 +130,7 @@ export default function FoodSearch({ catId, onAdded }) {
               <img
                 src={selected.image_url || fallbackImg(selected.brand)}
                 alt=""
-                className="w-14 h-14 rounded-xl object-cover bg-card shrink-0"
+                className="w-20 h-20 rounded-xl object-cover bg-card shrink-0"
                 onError={e => { e.target.src = fallbackImg(selected.brand); }}
               />
               <div className="flex-1 min-w-0">
